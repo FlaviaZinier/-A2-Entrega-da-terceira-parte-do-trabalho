@@ -12,39 +12,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// =====================================================================
-// LivrosViewModel.kt
-// O ViewModel guarda as listas do app e conversa com o banco.
-//
-// Por que ele existe? Quando o celular GIRA, o Android destrói e recria
-// a tela (a Activity). Tudo que estava em "remember" é perdido e a tela
-// "recomeça". O ViewModel NÃO é destruído na rotação: as listas continuam
-// aqui, prontas, e a tela só redesenha com elas.
-//
-// AndroidViewModel (e não só ViewModel) porque precisamos do "application"
-// para abrir o banco de dados.
-// =====================================================================
+
 class LivrosViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Abre o banco (sempre o mesmo, padrão Singleton) e pega os DAOs
     private val db = AppDatabase.getDatabase(application)
     private val livroDAO = db.livroDAO()
     private val anotacaoDAO = db.anotacaoDAO()
 
-    // ---------- ESTADO (o que as telas leem) ----------
-    // mutableStateOf: quando muda, o Compose redesenha as telas
-    // private set: só o ViewModel altera; as telas só leem
     var livros by mutableStateOf<List<Livro>>(emptyList())
         private set
 
     var anotacoes by mutableStateOf<List<Anotacao>>(emptyList())
         private set
 
-    // init roda UMA vez, quando o ViewModel é criado (não roda de novo ao girar)
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            // Na primeira vez que o app abre, o banco está vazio:
-            // colocamos os livros e anotações de exemplo
             try {
                 if (livroDAO.contar() == 0) {
                     livroDAO.inserirTodos(livrosIniciais())
@@ -58,9 +40,6 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // =================================================================
-    // BUSCAR (chamadas pelas telas de lista, no LaunchedEffect(Unit))
-    // =================================================================
     fun carregarLivros() {
         viewModelScope.launch(Dispatchers.IO) { recarregarLivros() }
     }
@@ -69,7 +48,6 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch(Dispatchers.IO) { recarregarAnotacoes() }
     }
 
-    // Busca no banco (thread IO) e entrega o resultado para a tela (thread Main)
     private suspend fun recarregarLivros() {
         try {
             val lista = livroDAO.buscarTodos()
@@ -88,7 +66,6 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // Busca UM livro pelo id, direto no banco (usada pelo Detalhe e pela Edição)
     suspend fun buscarLivroPorId(id: Int): Livro? = withContext(Dispatchers.IO) {
         try {
             livroDAO.buscarPorId(id)
@@ -98,7 +75,6 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // Busca as anotações de UM livro, direto no banco (usada pelo Detalhe do livro)
     suspend fun buscarAnotacoesDoLivro(livroId: Int): List<Anotacao> = withContext(Dispatchers.IO) {
         try {
             anotacaoDAO.buscarPorLivro(livroId)
@@ -108,7 +84,6 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // Busca UMA anotação pelo id (usada pelo Detalhe da anotação)
     suspend fun buscarAnotacaoPorId(id: Int): Anotacao? = withContext(Dispatchers.IO) {
         try {
             anotacaoDAO.buscarPorId(id)
@@ -118,10 +93,7 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // =================================================================
-    // LIVROS: inserir, atualizar, excluir
-    // Cada operação roda no Dispatchers.IO e depois recarrega a lista.
-    // =================================================================
+
     fun inserirLivro(livro: Livro) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -147,7 +119,7 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
     fun excluirLivro(livro: Livro) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                livroDAO.excluir(livro)   // as anotações dele somem junto (CASCADE)
+                livroDAO.excluir(livro)  
             } catch (e: Exception) {
                 Log.e("WSLBOOK", "Erro ao excluir livro: ${e.message}")
             }
@@ -156,9 +128,6 @@ class LivrosViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // =================================================================
-    // ANOTAÇÕES: inserir, atualizar, excluir
-    // =================================================================
     fun inserirAnotacao(anotacao: Anotacao) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
