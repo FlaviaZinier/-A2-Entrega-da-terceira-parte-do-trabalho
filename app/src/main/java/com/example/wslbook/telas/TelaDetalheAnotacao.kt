@@ -135,7 +135,7 @@ fun TelaDetalheAnotacao(
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onAbrirLivro(livro.id) }     // abre o Detalhe do livro
+                        .clickable { onAbrirLivro(livro.id) }     
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
