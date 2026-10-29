@@ -36,14 +36,6 @@ import com.example.wslbook.componentes.Filtro
 import com.example.wslbook.componentes.coresDoCampo
 import com.example.wslbook.generos
 
-
-// =====================================================================
-// NOVO LIVRO / EDITAR LIVRO
-// A mesma tela serve para as duas coisas:
-//  - livroId = -1  -> cadastro NOVO   (salva com dao.inserir)
-//  - livroId = 5   -> EDITA o livro 5 (busca no banco, preenche os campos
-//                     e salva com dao.atualizar)
-// =====================================================================
 @Composable
 fun TelaNovoLivro(
     viewModel: LivrosViewModel,
@@ -57,11 +49,9 @@ fun TelaNovoLivro(
     var totalPaginasTexto by rememberSaveable { mutableStateOf("") }
     var paginasLidasTexto by rememberSaveable { mutableStateOf("") }
     var erro by rememberSaveable { mutableStateOf<String?>(null) }
-    var capa by rememberSaveable { mutableStateOf("capa") }            // mantém a capa ao editar
-    var dadosCarregados by rememberSaveable { mutableStateOf(false) }  // já preencheu os campos?
+    var capa by rememberSaveable { mutableStateOf("capa") }            
+    var dadosCarregados by rememberSaveable { mutableStateOf(false) }  
 
-    // Se for EDIÇÃO: busca o livro no banco e preenche os campos (só uma vez,
-    // para não apagar o que a pessoa digitou se o celular girar)
     LaunchedEffect(livroId) {
         if (editando && !dadosCarregados) {
             viewModel.buscarLivroPorId(livroId)?.let { livro ->
@@ -152,7 +142,7 @@ fun TelaNovoLivro(
 
                     if (erro == null && total != null) {
                         val livro = Livro(
-                            id = if (editando) livroId else 0,   // 0 = o banco gera um id novo
+                            id = if (editando) livroId else 0,  
                             titulo = titulo.trim(),
                             autor = autor.trim().ifBlank { "Autor desconhecido" },
                             genero = genero,
@@ -161,9 +151,9 @@ fun TelaNovoLivro(
                             capa = capa
                         )
                         if (editando) {
-                            viewModel.atualizarLivro(livro)   // UPDATE no banco
+                            viewModel.atualizarLivro(livro)   
                         } else {
-                            viewModel.inserirLivro(livro)     // INSERT no banco
+                            viewModel.inserirLivro(livro)     
                         }
                         onVoltar()
                     }
