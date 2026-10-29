@@ -12,7 +12,7 @@ Aplicativo Android de leitura e organização de livros, feito em **Kotlin + Jet
 
 ---
 
-## ▶️ Como rodar o projeto
+##  Como rodar o projeto
 
 1. Clone o repositório: `git clone <URL-DESTE-REPOSITORIO>`
 2. Android Studio → **File → Open** → escolha a pasta do projeto.
@@ -26,24 +26,24 @@ Aplicativo Android de leitura e organização de livros, feito em **Kotlin + Jet
 
 ---
 
-## ✨ O que o app faz (CRUD com banco)
+##  O que o app faz (CRUD com banco)
 
 | Ação | Onde | Operação no banco |
 |---|---|---|
 | **Buscar** | Ao abrir Início, Biblioteca, Anotações e Perfil | `buscarTodos()` / `buscarTodas()` |
 | **Inserir** livro | Biblioteca → **Adicionar** | `livroDAO.inserir()` |
 | **Inserir** anotação | Anotações → **Nova anotação** | `anotacaoDAO.inserir()` |
-| **Atualizar** livro | Detalhe → ✏️ **Editar** (formulário) ou **+10 / -10 / Concluir** | `livroDAO.atualizar()` |
-| **Atualizar** anotação | Checkbox ⭐ de favorita | `anotacaoDAO.atualizar()` |
+| **Atualizar** livro | Detalhe →  **Editar** (formulário) ou **+10 / -10 / Concluir** | `livroDAO.atualizar()` |
+| **Atualizar** anotação | Checkbox  de favorita | `anotacaoDAO.atualizar()` |
 | **Remover** | 🗑️ lixeira nas duas listas e "Excluir anotação" | `excluir()` |
 | **Buscar por id** | Detalhe do livro e tela de Editar | `livroDAO.buscarPorId(id)` |
 
 ---
 
-## 📝 Processo e decisões do Trabalho 3
+##  Processo e decisões do Trabalho 3
 
-> 🎬 **Vídeo do teste de persistência:** _(colar o link aqui)_
-> 📸 Prints em `docs/prints/trabalho3/`
+>  **Vídeo do teste de persistência:** https://drive.google.com/drive/folders/10BdfiakQQgYS7CZQNhlcZgEALxLb0DFB?usp=drive_link
+>  Prints em https://drive.google.com/drive/folders/1HKmxuwz4TSBQKqyk4Ce1B6eu7bXS2se3?usp=sharing
 
 ### 1. Como estava o projeto no Trabalho 2, e o que mudou?
 
@@ -57,8 +57,6 @@ O que mudou:
 5. O **Detalhe do livro busca o livro direto do banco pelo id**.
 6. Criamos a tela de **Editar livro** (o formulário de "Novo livro" reaproveitado).
 7. O estado das telas (busca, filtros, campos dos formulários) passou de `remember` para **`rememberSaveable`**.
-
-![Antes: dados somem ao reabrir](docs/prints/trabalho3/01-antes.png)
 
 ### 2. Quais Entity, DAO e Database foram criados, e por que esses campos?
 
@@ -99,7 +97,7 @@ Os **4 básicos** em cada DAO, todos `suspend`: `@Insert`, `@Query` (buscar todo
 
 A tela de Detalhe do livro recebe **só o id** pela rota (`detalhe_livro/{livroId}`). Ao abrir, um `LaunchedEffect` chama `livroDAO.buscarPorId(id)` e `anotacaoDAO.buscarPorLivro(id)`. Quando o livro é editado (+10 pág ou pelo formulário), a busca roda de novo e a tela mostra o valor que **está salvo no banco**.
 
-![Detalhe do livro](docs/prints/trabalho3/02-detalhe.png) ![Editar livro](docs/prints/trabalho3/03-editar.png)
+![Detalhe do livro] (https://drive.google.com/file/d/1wQhhGzcByI7T3LhctRhHkpTgfjLNLYLP/view?usp=drive_link) ![Editar livro] (https://drive.google.com/file/d/1tj0bJfkQKjErxf0aG45yMKYBwoU0olG7/view?usp=drive_link).
 
 ### 5. A rotação de tela e o ViewModel
 
@@ -107,7 +105,7 @@ Ao girar o celular, o Android **destrói e recria** a tela. Tudo que estava em `
 - **Listas:** passaram para o **`LivrosViewModel`**. O ViewModel **não é destruído** na rotação, então as listas continuam carregadas.
 - **Campos e filtros das telas:** passaram para **`rememberSaveable`**, que guarda o valor durante a rotação.
 
-![Antes de girar](docs/prints/trabalho3/04-retrato.png) ![Depois de girar](docs/prints/trabalho3/05-paisagem.png)
+![Antes de girar] (https://drive.google.com/file/d/1cza6SHwc3N_qd92nCOtBcSWG22vkM6PJ/view?usp=drive_link) ![Depois de girar] (https://drive.google.com/file/d/1M1pv4jQ5XgrQOCH7y6Jm_QR7CzRH3v8u/view?usp=drive_link)
 
 ### 6. Qual foi a dificuldade em migrar de `mutableStateListOf` para Room?
 
@@ -118,26 +116,40 @@ Ao girar o celular, o Android **destrói e recria** a tela. Tudo que estava em `
 - **App fechando depois de mudar uma `@Entity`:** o banco instalado no emulador ainda tinha o formato antigo. Resolvemos desinstalando o app antes de testar.
 - **Tela recomeçando ao girar o celular:** resolvido com ViewModel + `rememberSaveable`.
 
-### 7. Teste de persistência 🎬
+### 7. Teste de persistência 
 
 1. Adicionar um livro novo na Biblioteca.
-2. Editar esse livro (✏️ no Detalhe).
+2. Editar esse livro (no Detalhe).
 3. Remover outro livro.
 4. **Fechar o app completamente** (tirar dos apps recentes).
 5. Abrir de novo: o livro adicionado e a edição **continuam lá**, e o removido **continua removido**.
 
-🎬 _Link do vídeo: (colar aqui)_
+ _Link do vídeo: (https://drive.google.com/drive/folders/1_NQwK8sZW3sbIknNpzjZzZiTyLziVbVn?usp=sharing)
 
-![Depois de reabrir](docs/prints/trabalho3/06-reaberto.png)
+![Depois de reabrir]([docs/prints/trabalho3/06-reaberto.png](https://drive.google.com/file/d/1uusovDQKeWCe13OJfqySRYNuDN-xeCgM/view?usp=drive_link))
 
 ### 8. Dificuldades de cada integrante
-- _(Integrante 1: ...)_
-- _(Integrante 2: ...)_
-- _(Integrante 3: ...)_
+
+- *Gabriele:* fiquei com a migração das listas (mutableStateListOf) para o Room, e foi a parte mais trabalhosa do trabalho.
+  - Na primeira versão o projeto *não compilava*. As data classes usavam @Entity, @PrimaryKey e ForeignKey, mas faltavam os imports do androidx.room. Os arquivos AppDatabase.kt e Daos.kt estavam dentro da pasta telas, em outro pacote, e não enxergavam o Livro e a Anotacao. Resolvemos criando a pasta dados/ só para o banco, com todos os imports certos.
+  - A tela de Biblioteca ainda tentava apagar da lista antiga (livros.remove(livro)), mas agora a lista vem do banco e não pode ser alterada direto. Trocamos por uma chamada ao banco (excluirLivro). Com o ForeignKey em CASCADE, as anotações do livro são apagadas juntas, sem precisar de código a mais.
+  - Depois disso, o *Sync falhou* com o erro "Using kotlin.sourceSets DSL to add Kotlin sources is not allowed with built-in Kotlin". Pesquisando, entendemos que o KSP (a ferramenta que gera o código do Room) ainda registra os arquivos do jeito antigo, e o AGP 9 bloqueia isso. Resolvemos com android.disallowKotlinSourceSets=false no gradle.properties.
+  - Também percebi que salvar a capa como R.drawable.img_10 era um problema. Esse valor é um *número gerado a cada compilação: se uma imagem fosse adicionada ou removida, o banco ficaria com um número velho e mostraria a capa errada. Trocamos para salvar o **nome* da imagem ("img_10") e criamos a função capaPorNome() para converter.
+  - Por fim, depois de mudar uma @Entity, o app fechava ao abrir, porque o banco instalado no emulador ainda tinha o formato antigo. *Aprendi* que, sempre que a estrutura de uma tabela muda, é preciso desinstalar o app antes de testar (ou aumentar a version do banco).
+
+- *Flavia:* tive dificuldade para *rodar o projeto no computador da faculdade*.
+  - O Android Studio de lá é mais antigo e mostrou o erro "The project is using an incompatible version (AGP 9.3.3)... Latest supported version is AGP 9.0.0". O projeto tinha sido criado num Android Studio mais novo. Resolvemos ajustando as versões no libs.versions.toml e no build.gradle.kts: AGP 9.0.0, compileSdk e targetSdk 36, e versões do core-ktx, lifecycle e Compose compatíveis.
+  - Apareceu também um erro do foojay ("Could not HEAD 'https://api.foojay.io/...'"): o Gradle tentava baixar sozinho um Java 25 e o download falhava. Resolvemos apagando o arquivo gradle-daemon-jvm.properties e escolhendo o *Embedded JDK, o Java que já vem com o Android Studio, em *Settings → Build Tools → Gradle.
+  - *Aprendi* que nem todo erro é do código: muitas vezes é a versão da ferramenta. A mensagem do erro geralmente diz o que está faltando.
+
+- *Michelly:* fiquei com dois problemas que apareciam na hora de *testar e apresentar* o app.
+  - Ao *girar o celular, a tela "recomeçava": o filtro escolhido, o texto da busca e o que estava digitado no formulário sumiam. Entendemos que, na rotação, o Android **destrói e recria a tela, e tudo que estava em remember é perdido. Resolvemos de dois jeitos: as listas foram para o *LivrosViewModel*, que não é destruído na rotação, e os campos e filtros passaram de remember para *rememberSaveable**, que guarda o valor durante a rotação. Testamos girando o emulador com Ctrl + F11 no meio do formulário de Novo livro, e o texto continuou lá.
+  - As *imagens do README não apareciam* no GitHub. O texto procurava arquivos como docs/prints/01-inicio.png, mas os prints tinham sido salvos como inicio.jpeg, sem o número e com outra extensão. Para o GitHub, qualquer diferença no nome é como pedir um arquivo que não existe. Corrigimos todos os caminhos para os nomes reais.
+  - *Aprendi* que é melhor copiar e colar o nome do arquivo do que digitar, e usar sempre nomes em minúsculas, sem espaço e sem acento.
 
 ---
 
-## 🗂️ Organização do código
+## Organização do código
 
 ```
 app/src/main/java/com/example/wslbook/
@@ -152,10 +164,10 @@ app/src/main/java/com/example/wslbook/
 └── telas/                  ← as 8 telas (Novo livro também faz a Edição)
 ```
 
-## 🧰 Tecnologias
+## Tecnologias
 Kotlin · Jetpack Compose · Material 3 · Navigation Compose · **Room** (`@Entity`, `@Dao`, `@Database`) · **KSP** · **ViewModel** · Coroutines (`Dispatchers.IO`) · `LaunchedEffect` · `rememberSaveable`
 
-## 👥 Integrantes
-- _Nome 1_
-- _Nome 2_
-- _Nome 3_
+## Integrantes
+- Flavia Zinier
+- Gabriele Cubas
+- Michelly Wu
