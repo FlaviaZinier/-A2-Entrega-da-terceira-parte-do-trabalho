@@ -23,18 +23,11 @@ import com.example.wslbook.telas.TelaLeitura
 import com.example.wslbook.telas.TelaNovoLivro
 import com.example.wslbook.telas.TelaPerfil
 
-// =====================================================================
-// AppNavigation.kt
-// O "mapa da casa": diz qual tela mora em qual endereço (rota).
-// As listas agora moram no ViewModel, que conversa com o banco Room.
-// =====================================================================
 @Composable
 fun AppNavigation() {
 
     val navController = rememberNavController()
 
-    // viewModel(): cria o ViewModel UMA vez. Ao girar o celular, devolve o
-    // MESMO ViewModel, com as listas já carregadas (a tela não "recomeça").
     val viewModel: LivrosViewModel = viewModel()
 
     val entradaAtual by navController.currentBackStackEntryAsState()
@@ -56,18 +49,16 @@ fun AppNavigation() {
             modifier = Modifier.padding(paddingInterno)
         ) {
 
-            // ---------- 1. INÍCIO ----------
             composable(Rotas.INICIO) {
-                LaunchedEffect(Unit) { viewModel.carregarLivros() }   // busca no banco ao abrir
+                LaunchedEffect(Unit) { viewModel.carregarLivros() }   
                 TelaInicio(
                     livros = viewModel.livros,
                     onAbrirLivro = { id -> navController.navigate(Rotas.detalheLivro(id)) }
                 )
             }
 
-            // ---------- 2. BIBLIOTECA (lista de livros) ----------
             composable(Rotas.BIBLIOTECA) {
-                LaunchedEffect(Unit) { viewModel.carregarLivros() }   // busca no banco ao abrir
+                LaunchedEffect(Unit) { viewModel.carregarLivros() }  
                 TelaBiblioteca(
                     livros = viewModel.livros,
                     onExcluirLivro = { livro -> viewModel.excluirLivro(livro) },
@@ -76,7 +67,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ---------- 3. NOVO LIVRO ----------
             composable(Rotas.NOVO_LIVRO) {
                 TelaNovoLivro(
                     viewModel = viewModel,
@@ -84,7 +74,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ---------- 4. EDITAR LIVRO (mesma tela, recebendo o id) ----------
             composable(
                 route = Rotas.EDITAR_LIVRO,
                 arguments = listOf(navArgument(Rotas.ARG_LIVRO_ID) { type = NavType.IntType })
@@ -97,7 +86,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ---------- 5. DETALHE DO LIVRO (busca no banco pelo id) ----------
             composable(
                 route = Rotas.DETALHE_LIVRO,
                 arguments = listOf(navArgument(Rotas.ARG_LIVRO_ID) { type = NavType.IntType })
@@ -113,7 +101,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ---------- 6. LEITURA ----------
             composable(
                 route = Rotas.LEITURA,
                 arguments = listOf(navArgument(Rotas.ARG_LIVRO_ID) { type = NavType.IntType })
@@ -127,9 +114,8 @@ fun AppNavigation() {
                 )
             }
 
-            // ---------- 7. ANOTAÇÕES (lista) ----------
             composable(Rotas.ANOTACOES) {
-                LaunchedEffect(Unit) {                                 // busca no banco ao abrir
+                LaunchedEffect(Unit) {                                 
                     viewModel.carregarLivros()
                     viewModel.carregarAnotacoes()
                 }
@@ -143,7 +129,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ---------- 8. DETALHE DA ANOTAÇÃO ----------
             composable(
                 route = Rotas.DETALHE_ANOTACAO,
                 arguments = listOf(navArgument(Rotas.ARG_ANOTACAO_ID) { type = NavType.IntType })
@@ -160,7 +145,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ---------- 9. PERFIL ----------
             composable(Rotas.PERFIL) {
                 LaunchedEffect(Unit) {
                     viewModel.carregarLivros()
