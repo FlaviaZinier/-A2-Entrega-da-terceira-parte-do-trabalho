@@ -7,15 +7,10 @@ import androidx.room.RoomDatabase
 import com.example.wslbook.Anotacao
 import com.example.wslbook.Livro
 
-// =====================================================================
-// AppDatabase.kt
-// O "arquivo do banco": diz quais tabelas existem (entities) e entrega
-// os DAOs. Segue o mesmo modelo da aula (getDatabase + INSTANCE).
-// =====================================================================
 @Database(
-    entities = [Livro::class, Anotacao::class],   // as 2 tabelas do app
+    entities = [Livro::class, Anotacao::class],   
     version = 1,
-    exportSchema = false                          // não gera o arquivo de histórico do banco (evita aviso)
+    exportSchema = false                          
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -23,11 +18,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun anotacaoDAO(): AnotacaoDAO
 
     companion object {
-        // @Volatile: todas as partes do app enxergam o valor mais recente
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Devolve SEMPRE o mesmo banco (só cria na primeira vez)
         fun getDatabase(context: Context): AppDatabase {
             val tempInstance = INSTANCE
             if (tempInstance != null) {
@@ -37,7 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "wslbook_database"                // nome do arquivo do banco no celular
+                    "wslbook_database"             
                 ).build()
                 INSTANCE = instance
                 return instance
