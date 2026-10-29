@@ -50,7 +50,7 @@ fun TelaInicio(
 ) {
 
     var busca by rememberSaveable { mutableStateOf("") }
-    var generoSelecionado by rememberSaveable { mutableStateOf<String?>(null) }   // null = todos
+    var generoSelecionado by rememberSaveable { mutableStateOf<String?>(null) } 
 
     val lendoAgora = livros.filter { it.status() == "Lendo" }
 
@@ -99,7 +99,7 @@ fun TelaInicio(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
                                     .width(80.dp)
-                                    .clickable { onAbrirLivro(livro.id) }   // abre o Detalhe
+                                    .clickable { onAbrirLivro(livro.id) }  
                             ) {
                                 CapaDoLivro(
                                     titulo = livro.titulo,
