@@ -126,7 +126,7 @@ Ao girar o celular, o Android **destrói e recria** a tela. Tudo que estava em `
 
  _Link do vídeo: (https://drive.google.com/drive/folders/1_NQwK8sZW3sbIknNpzjZzZiTyLziVbVn?usp=sharing)
 
-![Depois de reabrir]([docs/prints/trabalho3/06-reaberto.png](https://drive.google.com/file/d/1uusovDQKeWCe13OJfqySRYNuDN-xeCgM/view?usp=drive_link))
+![Depois de reabrir](https://drive.google.com/file/d/1uusovDQKeWCe13OJfqySRYNuDN-xeCgM/view?usp=drive_link).
 
 ### 8. Dificuldades de cada integrante
 
