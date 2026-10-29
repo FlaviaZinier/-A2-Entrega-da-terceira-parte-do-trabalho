@@ -6,20 +6,15 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-// =====================================================================
-// FICHA 1: LIVRO, agora também uma TABELA do banco de dados (Room)
-// @Entity = "esta data class vira uma tabela chamada livros"
-// =====================================================================
 @Entity(tableName = "livros")
 data class Livro(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,   // o banco gera o id sozinho (1, 2, 3...)
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,   
     val titulo: String,
     val autor: String,
     val genero: String,
     val totalPaginas: Int,
     val paginasLidas: Int = 0,
-    // NOME da imagem em res/drawable (ex: "img_10"), e não o número R.drawable.
-    // Os números R.drawable mudam quando o app é recompilado; o nome não muda.
+
     val capa: String = "capa"
 )  {
 
@@ -35,11 +30,6 @@ data class Livro(
     }
 }
 
-// =====================================================================
-// FICHA 2: ANOTAÇÃO, tabela "anotacoes"
-// ForeignKey = cada anotação aponta para um livro que EXISTE na tabela livros.
-// CASCADE = se o livro for apagado, as anotações dele são apagadas junto.
-// =====================================================================
 @Entity(
     tableName = "anotacoes",
     foreignKeys = [ForeignKey(
@@ -87,9 +77,7 @@ object Cores {
     val Cinza = Color(0xFF9E9E9E)
 }
 
-// ---------- CAPAS ----------
-// Converte o NOME guardado no banco no número da imagem (R.drawable).
-// Se o nome não existir, usa a capa padrão.
+
 fun capaPorNome(nome: String): Int = when (nome) {
     "img" -> R.drawable.img
     "img_1" -> R.drawable.img_1
@@ -108,7 +96,6 @@ fun capaPorNome(nome: String): Int = when (nome) {
 val generos = listOf("Romance", "Fantasia", "Terror", "Suspense", "Ficção")
 
 fun livrosIniciais(): List<Livro> = listOf(
-    //    id  título                                   autor(a)              gênero      págs  lidas  capa
     Livro(1,  "Harry Potter e a Pedra Filosofal",      "J.K. Rowling",       "Fantasia", 264,  264,   "img_10"),
     Livro(2,  "O Príncipe Cruel",                      "Holly Black",        "Fantasia", 312,  150,   "img_3"),
     Livro(3,  "Noiva",                                 "Ali Hazelwood",      "Romance",  416,  0,     "img_4"),
