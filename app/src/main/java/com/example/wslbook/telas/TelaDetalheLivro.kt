@@ -50,12 +50,6 @@ import com.example.wslbook.componentes.CapaDoLivro
 
 private const val PAGINAS_POR_DIA = 20
 
-// =====================================================================
-// DETALHE DO LIVRO (Trabalho 3, seção 3.3)
-// Esta tela recebe SÓ o id pela navegação e BUSCA o livro direto no banco
-// (livroDAO.buscarPorId), em vez de receber o objeto pronto.
-// As anotações também vêm do banco, já filtradas (anotacaoDAO.buscarPorLivro).
-// =====================================================================
 @Composable
 fun TelaDetalheLivro(
     livroId: Int,
@@ -65,17 +59,14 @@ fun TelaDetalheLivro(
     onLer: (Int) -> Unit,
     onAbrirAnotacao: (Int) -> Unit
 ) {
-    // O que veio do banco (começa vazio até a busca terminar)
+
     var livroDoBanco by remember { mutableStateOf<Livro?>(null) }
     var anotacoesDoLivro by remember { mutableStateOf<List<Anotacao>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
 
-    // LaunchedEffect: roda a busca assim que a tela abre.
-    // As "chaves" (livroId e as listas do ViewModel) fazem a busca rodar de
-    // novo quando algo muda no banco (ex: depois de editar ou de +10 pág).
     LaunchedEffect(livroId, viewModel.livros, viewModel.anotacoes) {
-        livroDoBanco = viewModel.buscarLivroPorId(livroId)          // SELECT * FROM livros WHERE id = :id
-        anotacoesDoLivro = viewModel.buscarAnotacoesDoLivro(livroId) // SELECT ... WHERE livroId = :livroId
+        livroDoBanco = viewModel.buscarLivroPorId(livroId)         
+        anotacoesDoLivro = viewModel.buscarAnotacoesDoLivro(livroId) 
         carregando = false
     }
 
@@ -93,7 +84,6 @@ fun TelaDetalheLivro(
         return
     }
 
-    // EDITAR (atualizar) no banco: mostra o valor novo na hora e salva com dao.atualizar
     fun atualizarPaginas(novoValor: Int) {
         val atualizado = livro.copy(paginasLidas = novoValor.coerceIn(0, livro.totalPaginas))
         livroDoBanco = atualizado
@@ -102,7 +92,6 @@ fun TelaDetalheLivro(
 
     val porcentagem = livro.porcentagemLida()
     val restantes = livro.paginasRestantes()
-    // Arredonda para cima: 25 páginas a 20/dia = 2 dias
     val diasParaTerminar = (restantes + PAGINAS_POR_DIA - 1) / PAGINAS_POR_DIA
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -111,7 +100,6 @@ fun TelaDetalheLivro(
             titulo = livro.titulo,
             onVoltar = onVoltar,
             acoes = {
-                // Lápis: abre o formulário de EDIÇÃO deste livro
                 IconButton(onClick = { onEditar(livro.id) }) {
                     Icon(Icons.Filled.Edit, contentDescription = "Editar livro")
                 }
