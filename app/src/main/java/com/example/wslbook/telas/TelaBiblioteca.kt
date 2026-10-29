@@ -113,7 +113,6 @@ fun TelaBiblioteca(
                         livro = livro,
                         onClick = { onAbrirLivro(livro.id) },
                         onRemover = {
-                            // Apaga do banco. As anotações dele somem juntas (ForeignKey CASCADE)
                             onExcluirLivro(livro)
                         }
                     )
