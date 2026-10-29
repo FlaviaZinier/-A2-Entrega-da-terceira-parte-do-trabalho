@@ -46,19 +46,10 @@ import com.example.wslbook.R
 import com.example.wslbook.Rotas
 import com.example.wslbook.capaPorNome
 
-// =====================================================================
-// Componentes.kt
-// "Peças de Lego" reaproveitadas em várias telas.
-// =====================================================================
-
-
-// ---------- CAPA DO LIVRO ----------
-// Mostra a imagem da capa de CADA livro (o "endereço" da imagem vem do campo
-// "capa" da data class Livro). Se nenhuma for informada, usa a capa padrão.
 @Composable
 fun CapaDoLivro(
     titulo: String,
-    capa: String = "capa",   // NOME da imagem em res/drawable (vem do banco)
+    capa: String = "capa",   
     modifier: Modifier = Modifier
 ) {
     Image(
@@ -70,8 +61,6 @@ fun CapaDoLivro(
 }
 
 
-// ---------- FILTRO (chip clicável) ----------
-// Pílula vermelha do Trabalho 1, agora clicável e com estado "selecionado".
 @Composable
 fun Filtro(
     texto: String,
@@ -103,12 +92,10 @@ fun Filtro(
 }
 
 
-// ---------- BARRA DE PROGRESSO ----------
-// porcentagem vai de 0 a 100
 @Composable
 fun BarraDeProgresso(porcentagem: Int, modifier: Modifier = Modifier) {
     LinearProgressIndicator(
-        progress = { porcentagem / 100f },     // o componente quer um número de 0.0 a 1.0
+        progress = { porcentagem / 100f },     
         color = Cores.Vermelho,
         trackColor = Cores.FundoCard,
         modifier = modifier
@@ -119,13 +106,12 @@ fun BarraDeProgresso(porcentagem: Int, modifier: Modifier = Modifier) {
 }
 
 
-// ---------- BARRA DO TOPO (TopAppBar com botão de voltar) ----------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraDoTopo(
     titulo: String,
     onVoltar: () -> Unit,
-    acoes: @Composable () -> Unit = {}       // ícones extras do lado direito (opcional)
+    acoes: @Composable () -> Unit = {}      
 ) {
     TopAppBar(
         title = {
@@ -137,7 +123,7 @@ fun BarraDoTopo(
             )
         },
         navigationIcon = {
-            IconButton(onClick = onVoltar) {           // botão de VOLTAR funcional
+            IconButton(onClick = onVoltar) {           
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Voltar"
@@ -145,8 +131,6 @@ fun BarraDoTopo(
             }
         },
         actions = { acoes() },
-        // O Scaffold do AppNavigation já cuida do espaço da barra de status,
-        // então aqui zeramos para não sobrar um espaço duplo no topo.
         windowInsets = WindowInsets(0, 0, 0, 0),
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Cores.Fundo,
@@ -158,7 +142,6 @@ fun BarraDoTopo(
 }
 
 
-// ---------- CORES PADRÃO DOS CAMPOS DE TEXTO ----------
 @Composable
 fun coresDoCampo(): TextFieldColors = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Cores.Creme,
@@ -175,8 +158,6 @@ fun coresDoCampo(): TextFieldColors = OutlinedTextFieldDefaults.colors(
 )
 
 
-// ---------- BARRA DE NAVEGAÇÃO DE BAIXO ----------
-// Cada item da barra: rota de destino, ícone e nome
 private data class ItemDaBarra(val rota: String, val icone: ImageVector, val nome: String)
 
 private val itensDaBarra = listOf(
@@ -194,16 +175,14 @@ fun BarraDeNavegacao(
     NavigationBar(containerColor = Cores.Fundo) {
         itensDaBarra.forEach { item ->
             NavigationBarItem(
-                selected = rotaAtual == item.rota,       // pinta de vermelho o item da tela atual
+                selected = rotaAtual == item.rota,       
                 onClick = {
                     navController.navigate(item.rota) {
-                        // Volta até a tela inicial antes de abrir a aba,
-                        // para não empilhar telas infinitamente
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
-                        launchSingleTop = true   // não abre duas cópias da mesma tela
-                        restoreState = true      // volta a aba do jeito que estava
+                        launchSingleTop = true   
+                        restoreState = true      
                     }
                 },
                 icon = {
