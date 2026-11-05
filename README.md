@@ -1,18 +1,21 @@
-# 📚 WSL BOOK: Persistência com Room (Trabalho 3)
+# 📚 WSL BOOK: Arquitetura MVVM (Trabalho 4)
 
 Aplicativo Android de leitura e organização de livros, feito em **Kotlin + Jetpack Compose**.
 
 | Trabalho | O que o app ganhou |
 |---|---|
 | 1 | 3 telas estilizadas, com navegação "de mentirinha" |
-| 2 (MAF) | Navegação real entre 8 telas e duas listas que mudam (Livros e Anotações), mas só **na memória** |
-| **3** | **Banco de dados Room**: tudo que é adicionado, editado ou removido **continua lá depois de fechar o app**. E o app **não perde mais a tela ao girar o celular** (ViewModel) |
+| 2 (MAF) | Navegação real entre 8 telas e duas listas que mudam (Livros e Anotações), só na memória |
+| 3 | Banco de dados **Room**: os dados sobrevivem ao fechar o app |
+| **4** | **Arquitetura MVVM**: o mesmo app, reorganizado em camadas (Model, Repository, ViewModel, View), com **Flow**, **UiState** e **ViewModelFactory** |
 
-📄 A história do Trabalho 2 está em [PROCESSO-TRABALHO2.md](PROCESSO-TRABALHO2.md).
+📄 Histórico dos trabalhos anteriores: [README-TRABALHO3.md](README-TRABALHO3.md) · [PROCESSO-TRABALHO2.md](PROCESSO-TRABALHO2.md)
+
+> Neste trabalho **nenhuma tela nova e nenhuma funcionalidade nova** foram criadas. O app faz exatamente o que fazia no Trabalho 3: adicionar, listar, editar, remover e guardar os dados. O que mudou foi **a organização do código por dentro**.
 
 ---
 
-##  Como rodar o projeto
+## ▶️ Como rodar o projeto
 
 1. Clone o repositório: `git clone <URL-DESTE-REPOSITORIO>`
 2. Android Studio → **File → Open** → escolha a pasta do projeto.
@@ -21,151 +24,217 @@ Aplicativo Android de leitura e organização de livros, feito em **Kotlin + Jet
 
 **Se der erro:**
 - **"Using kotlin.sourceSets DSL... not allowed with built-in Kotlin"**: confira se o `gradle.properties` tem a linha `android.disallowKotlinSourceSets=false`.
-- **App fecha ao abrir, com erro do Room ("cannot verify the data integrity")**: o formato do banco mudou desde a última instalação. **Desinstale o app** do emulador e rode de novo.
+- **App fecha ao abrir, com erro do Room**: desinstale o app do emulador e rode de novo.
 - **Erro do foojay / Java**: File → Settings → Build Tools → Gradle → Gradle JDK → **Embedded JDK**.
 
 ---
 
-##  O que o app faz (CRUD com banco)
+## 🧱 As camadas do MVVM
 
-| Ação | Onde | Operação no banco |
-|---|---|---|
-| **Buscar** | Ao abrir Início, Biblioteca, Anotações e Perfil | `buscarTodos()` / `buscarTodas()` |
-| **Inserir** livro | Biblioteca → **Adicionar** | `livroDAO.inserir()` |
-| **Inserir** anotação | Anotações → **Nova anotação** | `anotacaoDAO.inserir()` |
-| **Atualizar** livro | Detalhe →  **Editar** (formulário) ou **+10 / -10 / Concluir** | `livroDAO.atualizar()` |
-| **Atualizar** anotação | Checkbox  de favorita | `anotacaoDAO.atualizar()` |
-| **Remover** | 🗑️ lixeira nas duas listas e "Excluir anotação" | `excluir()` |
-| **Buscar por id** | Detalhe do livro e tela de Editar | `livroDAO.buscarPorId(id)` |
+```
+   VIEW (ui)                 VIEWMODEL                 REPOSITORY              MODEL (data.local)
+┌──────────────┐  chama   ┌────────────────┐  chama  ┌──────────────┐  chama  ┌──────────────┐
+│TelaBiblioteca │ ──────▶ │ LivrosViewModel │ ──────▶ │LivroRepository│ ──────▶ │   LivroDAO   │──▶ Room
+│  (Composable) │ ◀────── │   uiState       │ ◀────── │               │ ◀────── │  Flow<List>  │
+└──────────────┘  observa └────────────────┘  Flow   └──────────────┘  Flow   └──────────────┘
+```
 
----
+| Camada | Pacote | O que faz | O que **não** faz |
+|---|---|---|---|
+| **View** | `ui` | Desenha a tela e avisa o ViewModel quando a pessoa toca em algo | Não fala com o banco, não abre Coroutine |
+| **ViewModel** | `viewmodel` | Guarda o estado da tela (`UiState`) e decide o que fazer em cada ação | Não sabe que o Room existe |
+| **Repository** | `data.repository` | É a única porta de entrada dos dados | Não sabe nada de tela |
+| **Model** | `data.local` | As tabelas (`@Entity`), os DAOs e o banco (`@Database`) | Não sabe nada de tela nem de ViewModel |
 
-##  Processo e decisões do Trabalho 3
-
->  **Vídeo do teste de persistência:** https://drive.google.com/drive/folders/10BdfiakQQgYS7CZQNhlcZgEALxLb0DFB?usp=drive_link
->  Prints em https://drive.google.com/drive/folders/1HKmxuwz4TSBQKqyk4Ce1B6eu7bXS2se3?usp=sharing
-
-### 1. Como estava o projeto no Trabalho 2, e o que mudou?
-
-No Trabalho 2, as listas de livros e anotações eram `mutableStateListOf` dentro do `AppNavigation`. Adicionar e remover funcionava, mas **ao fechar o app tudo voltava para os dados de exemplo**. E ao **girar o celular**, a tela "recomeçava": filtros, busca e o que estava digitado nos formulários sumiam.
-
-O que mudou:
-1. As duas data classes viraram **tabelas** do Room (`@Entity`).
-2. Criamos os **DAOs** (os "pedidos" ao banco) e o **`AppDatabase`** (padrão Singleton).
-3. Criamos o **`LivrosViewModel`**, que guarda as listas e faz todas as operações de banco.
-4. As telas de lista **buscam do banco ao abrir** (`LaunchedEffect(Unit)`).
-5. O **Detalhe do livro busca o livro direto do banco pelo id**.
-6. Criamos a tela de **Editar livro** (o formulário de "Novo livro" reaproveitado).
-7. O estado das telas (busca, filtros, campos dos formulários) passou de `remember` para **`rememberSaveable`**.
-
-### 2. Quais Entity, DAO e Database foram criados, e por que esses campos?
-
-**`Livro`** → tabela `livros`
-| Campo | Por quê |
-|---|---|
-| `id` (`@PrimaryKey(autoGenerate = true)`) | Identifica cada livro. O banco gera sozinho (1, 2, 3...) |
-| `titulo`, `autor`, `genero` | O que aparece nos cards e nos filtros |
-| `totalPaginas`, `paginasLidas` | Daqui saem os valores **calculados**: %, status, páginas restantes |
-| `capa` (texto, ex: `"img_10"`) | O **nome** da imagem. Não guardamos o número `R.drawable`, porque ele muda a cada compilação e o banco ficaria com um número velho |
-
-**`Anotacao`** → tabela `anotacoes`
-| Campo | Por quê |
-|---|---|
-| `id` (`@PrimaryKey(autoGenerate = true)`) | Identifica cada anotação |
-| `livroId` (`ForeignKey` com `CASCADE`) | Liga a anotação ao livro. Se o livro for apagado, as anotações dele são apagadas juntas |
-| `trecho`, `pagina` | O conteúdo da anotação |
-| `favorita` | Marcada pelo Checkbox (é a edição da lista de anotações) |
-
-**`AppDatabase`**: `@Database(entities = [Livro::class, Anotacao::class], version = 1)`, com `companion object` + `@Volatile` + `synchronized`, igual ao exemplo da aula. Assim o app inteiro usa **um banco só**.
-
-### 3. Como estruturamos as queries do DAO?
-
-Os **4 básicos** em cada DAO, todos `suspend`: `@Insert`, `@Query` (buscar todos), `@Update` e `@Delete`.
-
-**Consultas extras:**
-| Query | Para quê |
-|---|---|
-| `SELECT * FROM livros WHERE id = :id` (`buscarPorId`) | O Detalhe e a tela de Editar buscam o livro certo no banco |
-| `SELECT * FROM anotacoes WHERE livroId = :livroId ORDER BY pagina` (`buscarPorLivro`) | O Detalhe do livro mostra só as anotações daquele livro, já em ordem de página |
-| `SELECT * FROM anotacoes WHERE id = :id` (`buscarPorId`) | Buscar uma anotação específica |
-| `SELECT COUNT(*) FROM livros` (`contar`) | Saber se o banco está vazio na primeira vez, para colocar os livros de exemplo |
-| `inserirTodos` / `inserirTodas` | Inserir os dados de exemplo de uma vez |
-
-**Coroutines:** toda chamada ao DAO roda numa Coroutine no **`Dispatchers.IO`** (`viewModelScope.launch(Dispatchers.IO) { ... }`), com **`try/catch` e `Log.e`**, como no exemplo da aula. Usamos o `viewModelScope` em vez de `CoroutineScope(...)` solto porque ele é cancelado sozinho quando o ViewModel deixa de existir.
-
-### 4. Detalhe lendo do banco (seção 3.3)
-
-A tela de Detalhe do livro recebe **só o id** pela rota (`detalhe_livro/{livroId}`). Ao abrir, um `LaunchedEffect` chama `livroDAO.buscarPorId(id)` e `anotacaoDAO.buscarPorLivro(id)`. Quando o livro é editado (+10 pág ou pelo formulário), a busca roda de novo e a tela mostra o valor que **está salvo no banco**.
-
-![Detalhe do livro] (https://drive.google.com/file/d/1wQhhGzcByI7T3LhctRhHkpTgfjLNLYLP/view?usp=drive_link) ![Editar livro] (https://drive.google.com/file/d/1tj0bJfkQKjErxf0aG45yMKYBwoU0olG7/view?usp=drive_link).
-
-### 5. A rotação de tela e o ViewModel
-
-Ao girar o celular, o Android **destrói e recria** a tela. Tudo que estava em `remember` era perdido, e a tela "recomeçava".
-- **Listas:** passaram para o **`LivrosViewModel`**. O ViewModel **não é destruído** na rotação, então as listas continuam carregadas.
-- **Campos e filtros das telas:** passaram para **`rememberSaveable`**, que guarda o valor durante a rotação.
-
-![Antes de girar] (https://drive.google.com/file/d/1cza6SHwc3N_qd92nCOtBcSWG22vkM6PJ/view?usp=drive_link) ![Depois de girar] (https://drive.google.com/file/d/1M1pv4jQ5XgrQOCH7y6Jm_QR7CzRH3v8u/view?usp=drive_link)
-
-### 6. Qual foi a dificuldade em migrar de `mutableStateListOf` para Room?
-
-- **Imports faltando:** `@Entity`, `@PrimaryKey`, `ForeignKey` e `Flow` não eram reconhecidos. Faltavam os imports do `androidx.room`, e os arquivos do banco estavam na pasta `telas`, sem enxergar as data classes. Movemos o banco para uma pasta própria, `dados/`.
-- **Telas ainda mexendo na lista antiga:** a Biblioteca ainda fazia `livros.remove(...)`, mas agora a lista vem do banco e não pode ser alterada direto. Trocamos por uma chamada ao banco (`excluirLivro`).
-- **Erro do KSP com o AGP 9:** o Sync falhou com *"Using kotlin.sourceSets DSL to add Kotlin sources is not allowed with built-in Kotlin"*. Resolvemos com `android.disallowKotlinSourceSets=false` no `gradle.properties`.
-- **Capa salva como número:** guardávamos `R.drawable.img_10` (um número) no banco. Esse número muda a cada compilação, então trocamos para o **nome** da imagem.
-- **App fechando depois de mudar uma `@Entity`:** o banco instalado no emulador ainda tinha o formato antigo. Resolvemos desinstalando o app antes de testar.
-- **Tela recomeçando ao girar o celular:** resolvido com ViewModel + `rememberSaveable`.
-
-### 7. Teste de persistência 
-
-1. Adicionar um livro novo na Biblioteca.
-2. Editar esse livro (no Detalhe).
-3. Remover outro livro.
-4. **Fechar o app completamente** (tirar dos apps recentes).
-5. Abrir de novo: o livro adicionado e a edição **continuam lá**, e o removido **continua removido**.
-
- _Link do vídeo: (https://drive.google.com/drive/folders/1_NQwK8sZW3sbIknNpzjZzZiTyLziVbVn?usp=sharing)
-
-### 8. Dificuldades de cada integrante
-
-- *Gabriele:* fiquei com a migração das listas (mutableStateListOf) para o Room, e foi a parte mais trabalhosa do trabalho.
-  - Na primeira versão o projeto *não compilava*. As data classes usavam @Entity, @PrimaryKey e ForeignKey, mas faltavam os imports do androidx.room. Os arquivos AppDatabase.kt e Daos.kt estavam dentro da pasta telas, em outro pacote, e não enxergavam o Livro e a Anotacao. Resolvemos criando a pasta dados/ só para o banco, com todos os imports certos.
-  - A tela de Biblioteca ainda tentava apagar da lista antiga (livros.remove(livro)), mas agora a lista vem do banco e não pode ser alterada direto. Trocamos por uma chamada ao banco (excluirLivro). Com o ForeignKey em CASCADE, as anotações do livro são apagadas juntas, sem precisar de código a mais.
-  - Depois disso, o *Sync falhou* com o erro "Using kotlin.sourceSets DSL to add Kotlin sources is not allowed with built-in Kotlin". Pesquisando, entendemos que o KSP (a ferramenta que gera o código do Room) ainda registra os arquivos do jeito antigo, e o AGP 9 bloqueia isso. Resolvemos com android.disallowKotlinSourceSets=false no gradle.properties.
-  - Também percebi que salvar a capa como R.drawable.img_10 era um problema. Esse valor é um *número gerado a cada compilação: se uma imagem fosse adicionada ou removida, o banco ficaria com um número velho e mostraria a capa errada. Trocamos para salvar o **nome* da imagem ("img_10") e criamos a função capaPorNome() para converter.
-  - Por fim, depois de mudar uma @Entity, o app fechava ao abrir, porque o banco instalado no emulador ainda tinha o formato antigo. *Aprendi* que, sempre que a estrutura de uma tabela muda, é preciso desinstalar o app antes de testar (ou aumentar a version do banco).
-
-- *Flavia:* tive dificuldade para *rodar o projeto no computador da faculdade*.
-  - O Android Studio de lá é mais antigo e mostrou o erro "The project is using an incompatible version (AGP 9.3.3)... Latest supported version is AGP 9.0.0". O projeto tinha sido criado num Android Studio mais novo. Resolvemos ajustando as versões no libs.versions.toml e no build.gradle.kts: AGP 9.0.0, compileSdk e targetSdk 36, e versões do core-ktx, lifecycle e Compose compatíveis.
-  - Apareceu também um erro do foojay ("Could not HEAD 'https://api.foojay.io/...'"): o Gradle tentava baixar sozinho um Java 25 e o download falhava. Resolvemos apagando o arquivo gradle-daemon-jvm.properties e escolhendo o *Embedded JDK, o Java que já vem com o Android Studio, em *Settings → Build Tools → Gradle.
-  - *Aprendi* que nem todo erro é do código: muitas vezes é a versão da ferramenta. A mensagem do erro geralmente diz o que está faltando.
-
-- *Michelly:* fiquei com dois problemas que apareciam na hora de *testar e apresentar* o app.
-  - Ao *girar o celular, a tela "recomeçava": o filtro escolhido, o texto da busca e o que estava digitado no formulário sumiam. Entendemos que, na rotação, o Android **destrói e recria a tela, e tudo que estava em remember é perdido. Resolvemos de dois jeitos: as listas foram para o *LivrosViewModel*, que não é destruído na rotação, e os campos e filtros passaram de remember para *rememberSaveable**, que guarda o valor durante a rotação. Testamos girando o emulador com Ctrl + F11 no meio do formulário de Novo livro, e o texto continuou lá.
-  - As *imagens do README não apareciam* no GitHub. O texto procurava arquivos como docs/prints/01-inicio.png, mas os prints tinham sido salvos como inicio.jpeg, sem o número e com outra extensão. Para o GitHub, qualquer diferença no nome é como pedir um arquivo que não existe. Corrigimos todos os caminhos para os nomes reais.
-  - *Aprendi* que é melhor copiar e colar o nome do arquivo do que digitar, e usar sempre nomes em minúsculas, sem espaço e sem acento.
+> 🍽️ **Analogia do restaurante:** a **View** é o salão (onde o cliente vê e pede), o **ViewModel** é o garçom (anota o pedido e traz o prato pronto), o **Repository** é o balcão da cozinha (o único lugar onde se pede comida) e o **Room/DAO** é a despensa. O cliente nunca entra na despensa.
 
 ---
 
-## Organização do código
+## 🗂️ Organização em pacotes
 
 ```
 app/src/main/java/com/example/wslbook/
 ├── MainActivity.kt
-├── AppNavigation.kt        ← rotas + cria o ViewModel com viewModel()
-├── LivrosViewModel.kt      ← listas + todas as operações de banco (Dispatchers.IO)
-├── Modelos.kt              ← @Entity Livro e Anotacao, Rotas, Cores, dados iniciais
-├── dados/
-│   ├── AppDatabase.kt      ← @Database, Singleton
-│   └── Daos.kt             ← LivroDAO e AnotacaoDAO
-├── componentes/Componentes.kt
-└── telas/                  ← as 8 telas (Novo livro também faz a Edição)
+├── data/
+│   ├── local/                     ← MODEL (Room)
+│   │   ├── Livro.kt               @Entity
+│   │   ├── Anotacao.kt            @Entity (ForeignKey para Livro)
+│   │   ├── LivroDAO.kt            @Dao
+│   │   ├── AnotacaoDAO.kt         @Dao
+│   │   ├── AppDatabase.kt         @Database (Singleton)
+│   │   └── DadosIniciais.kt       livros e anotações de exemplo
+│   └── repository/                ← REPOSITORY
+│       ├── LivroRepository.kt
+│       └── AnotacaoRepository.kt
+├── viewmodel/                     ← VIEWMODEL
+│   ├── LivrosViewModel.kt         + LivrosUiState
+│   ├── AnotacoesViewModel.kt      + AnotacoesUiState
+│   ├── DetalheLivroViewModel.kt   + DetalheLivroUiState
+│   ├── LivroFormViewModel.kt      + LivroFormUiState
+│   └── AppViewModelFactory.kt     injeta os Repositories nos ViewModels
+└── ui/                            ← VIEW
+    ├── AppNavigation.kt           rotas + cria os ViewModels com a Factory
+    ├── Rotas.kt
+    ├── componentes/               peças reutilizadas (barra de navegação, capa, filtro...)
+    ├── telas/                     as 8 telas
+    └── theme/                     cores e tema
 ```
 
-## Tecnologias
-Kotlin · Jetpack Compose · Material 3 · Navigation Compose · **Room** (`@Entity`, `@Dao`, `@Database`) · **KSP** · **ViewModel** · Coroutines (`Dispatchers.IO`) · `LaunchedEffect` · `rememberSaveable`
+---
 
-## Integrantes
-- Flavia Zinier
-- Gabriele Cubas
-- Michelly Wu
+## 📝 Processo e decisões do Trabalho 4
+
+> 🎬 **Vídeo mostrando o app funcionando igual ao Trabalho 3:** _(colar o link aqui)_
+> 📸 Prints em `docs/prints/`
+
+### 1. Como estava o projeto no Trabalho 3, e o que mudou na reorganização?
+
+No Trabalho 3 o app já salvava tudo no Room, mas o código estava **misturado**:
+- Um **único `LivrosViewModel`** fazia tudo: guardava as listas de livros **e** de anotações, abria o banco e chamava os DAOs direto.
+- As telas ainda tinham **lógica de banco**: o Detalhe do livro chamava funções `suspend` dentro de um `LaunchedEffect`, e o formulário de Novo livro decidia sozinho se fazia `inserir` ou `atualizar`.
+- As listas eram buscadas **na mão** (`carregarLivros()` em cada tela, `recarregarLivros()` depois de cada inserir/remover).
+- Os arquivos ficavam em pastas soltas (`dados/`, `telas/`, `componentes/` e arquivos na raiz).
+
+O que mudou:
+1. O código foi dividido em **4 pacotes**: `ui`, `data.local`, `data.repository` e `viewmodel`.
+2. Criamos **um Repository por Entity** (`LivroRepository` e `AnotacaoRepository`). Só eles falam com os DAOs.
+3. O `buscarTodos()` dos DAOs passou a retornar **`Flow<List<...>>`**. As listas se atualizam sozinhas.
+4. O ViewModel único virou **4 ViewModels**, cada um com o seu **`UiState`**, no padrão `_uiState` privado + `uiState` público.
+5. Criamos a **`AppViewModelFactory`**, que entrega o Repository certo para cada ViewModel.
+6. As telas passaram a só **ler o `uiState`** e **chamar funções do ViewModel**.
+
+<p>
+<img src="docs/prints/inicio.jpeg" alt="Início" width="180">
+<img src="docs/prints/biblioteca.jpeg" alt="Biblioteca" width="180">
+<img src="docs/prints/detalhe-livro.jpeg" alt="Detalhe do livro" width="180">
+</p>
+
+*As telas continuam iguais: a mudança foi por dentro.*
+
+### 2. Como o trio decidiu dividir os pacotes?
+
+| Pacote | O que foi para lá | Por quê |
+|---|---|---|
+| `data.local` | `Livro`, `Anotacao`, `LivroDAO`, `AnotacaoDAO`, `AppDatabase` e os dados de exemplo | Tudo que é do **Room** fica junto. Se o banco mudar, só esta pasta muda |
+| `data.repository` | `LivroRepository` e `AnotacaoRepository` | A "porta de entrada" dos dados, separada de onde eles moram |
+| `viewmodel` | Os 4 ViewModels, os `UiState` (no mesmo arquivo de cada ViewModel) e a `AppViewModelFactory` | A lógica de cada tela num lugar só |
+| `ui` | As 8 telas, os componentes reutilizados, o tema, as rotas e o `AppNavigation` | Tudo que **aparece na tela** |
+
+**Decisões:**
+- Deixamos cada `UiState` **no mesmo arquivo** do seu ViewModel, porque um só existe por causa do outro.
+- A função `capaPorNome()`, que transforma o nome `"img_10"` na imagem, foi para `ui/componentes`. Ela só serve para **desenhar**, e o banco só guarda o nome.
+- O objeto `Cores` foi para `ui/theme`, junto com o tema.
+
+### 3. Por que o Repository existe? O que ele resolve?
+
+Antes, o ViewModel falava direto com o DAO, ou seja, ele **sabia** que os dados vinham do Room. Agora:
+
+```kotlin
+class LivroRepository(private val livroDAO: LivroDAO) {
+    fun buscarTodos(): Flow<List<Livro>> = livroDAO.buscarTodos()
+    fun observarPorId(id: Int): Flow<Livro?> = livroDAO.observarPorId(id)
+    suspend fun buscarPorId(id: Int): Livro? = livroDAO.buscarPorId(id)
+    suspend fun inserir(livro: Livro) = livroDAO.inserir(livro)
+    suspend fun atualizar(livro: Livro) = livroDAO.atualizar(livro)
+    suspend fun deletar(livro: Livro) = livroDAO.deletar(livro)
+}
+```
+
+Hoje ele só **repassa** para o DAO. A vantagem aparece no futuro: se um dia os livros vierem de uma **API na internet**, só o Repository muda. O ViewModel continua pedindo `buscarTodos()`, e as telas nem percebem. Ele é a **única fonte de verdade** dos dados.
+
+### 4. DAO reativo com Flow
+
+```kotlin
+@Query("SELECT * FROM livros ORDER BY id")
+fun buscarTodos(): Flow<List<Livro>>    // não é mais "suspend"
+```
+
+O `Flow` é uma **lista "ao vivo"**: o Room avisa sozinho sempre que a tabela muda. Por isso **apagamos** todo o código de "buscar de novo depois de inserir/remover" (`carregarLivros()`, `recarregarLivros()` e os `LaunchedEffect(Unit)` de busca nas telas).
+
+Usamos Flow também em `observarPorId(id)` e `buscarPorLivro(livroId)`. Assim, no Detalhe do livro, o **+10 pág** aparece na hora, sem a tela precisar buscar de novo.
+
+### 5. O que tem dentro do UiState de cada tela, e por quê?
+
+| ViewModel | UiState | Campos | Usado por |
+|---|---|---|---|
+| `LivrosViewModel` | `LivrosUiState` | `livros`, `totalAnotacoes`, `carregando` | Início, Biblioteca, Leitura, Perfil |
+| `AnotacoesViewModel` | `AnotacoesUiState` | `anotacoes`, `livros`, `carregando`, os campos do formulário (`formularioAberto`, `livroEscolhidoId`, `trecho`, `paginaTexto`, `erro`) e o filtro `soFavoritas` | Anotações, Detalhe da anotação |
+| `DetalheLivroViewModel` | `DetalheLivroUiState` | `livro`, `anotacoes` (só as daquele livro), `carregando` | Detalhe do livro |
+| `LivroFormViewModel` | `LivroFormUiState` | `livroId`, `titulo`, `autor`, `genero`, `totalPaginasTexto`, `paginasLidasTexto`, `capa`, `erro`, `salvo` | Novo livro e Editar livro |
+
+**Por que esses campos:**
+- **`carregando`**: a tela mostra "Carregando..." até o banco responder, em vez de "Livro não encontrado".
+- **Campos do formulário dentro do UiState**: o texto digitado mora no ViewModel, então **não some ao girar o celular**.
+- **`erro`**: a validação ("Informe o título do livro.") é feita no ViewModel, e a tela só mostra a mensagem.
+- **`salvo`**: quando o ViewModel termina de gravar, ele muda para `true` e a tela volta sozinha.
+- **`totalAnotacoes`**: o Perfil só precisa do **número** de anotações, e não da lista inteira.
+
+**O padrão `_uiState` / `uiState`** (igual em todos os ViewModels):
+```kotlin
+private val _uiState = MutableStateFlow(LivrosUiState())          // privado: só o ViewModel muda
+val uiState: StateFlow<LivrosUiState> = _uiState.asStateFlow()     // público: a tela só lê
+```
+E na tela:
+```kotlin
+val uiState by viewModel.uiState.collectAsState()
+```
+
+### 6. ViewModelFactory
+
+O Android não sabe criar sozinho um ViewModel que **recebe parâmetros** (no nosso caso, os Repositories). A `AppViewModelFactory` é a "fábrica" que monta cada ViewModel já com o Repository certo:
+
+```kotlin
+// AppNavigation.kt
+val factory = remember { AppViewModelFactory.criar(context) }   // banco -> DAOs -> Repositories
+val livrosViewModel: LivrosViewModel = viewModel(factory = factory)
+```
+
+**Decisão:** fizemos **uma Factory só**, reaproveitada pelos 4 ViewModels, em vez de 4 Factories quase iguais.
+
+**Onde cada ViewModel é criado:**
+- `LivrosViewModel` e `AnotacoesViewModel` são criados **uma vez**, no topo do `AppNavigation`, porque várias telas compartilham os mesmos dados.
+- `DetalheLivroViewModel` e `LivroFormViewModel` são criados **dentro da rota** de cada tela. Assim, cada vez que o formulário abre, ele começa **vazio**, e cada Detalhe aberto tem o seu próprio livro.
+
+### 7. As telas agora
+
+Nenhuma tela tem mais `dao`, `CoroutineScope` ou `Dispatchers.IO`. Cada tela faz só duas coisas:
+1. **Lê** o `uiState` (`collectAsState()`).
+2. **Chama** funções do ViewModel (`viewModel.salvar()`, `viewModel.deletarLivro(livro)`, `viewModel.marcarFavorita(...)`).
+
+O único estado que ficou nas telas (com `rememberSaveable`) é o que é **só visual**: o texto da busca, os filtros de gênero e de status, o tamanho da fonte na Leitura e o botão "Seguir" do Perfil.
+
+### 8. Alguma funcionalidade quebrou durante a reorganização?
+
+_(Escrever aqui o que aconteceu de verdade ao testar. Exemplos do que costuma acontecer:)_
+- **Imports quebrados ao mover os arquivos de pasta:** cada arquivo movido mudou de `package`, e as telas pararam de achar `Livro`, `Cores` e `Rotas`. Corrigimos os imports arquivo por arquivo.
+- _(outro problema encontrado e como foi resolvido)_
+
+### 9. Teste: o app continua fazendo tudo que fazia no Trabalho 3
+
+- [ ] Adicionar um livro e uma anotação
+- [ ] Editar um livro (✏️ no Detalhe) e o +10 pág
+- [ ] Marcar uma anotação como favorita
+- [ ] Remover um livro (as anotações dele somem juntas)
+- [ ] Fechar o app e reabrir: tudo continua lá
+- [ ] Girar o celular no meio do formulário: o texto continua lá
+
+🎬 _Link do vídeo: (colar aqui)_
+
+<!-- Prints do Trabalho 4: salvem em docs/prints/trabalho4/ e apaguem as marcas de comentário
+<img src="docs/prints/trabalho4/pacotes.png" alt="Pacotes no Android Studio" width="250">
+-->
+
+### 10. Dificuldades de cada integrante
+- **Gabriele:** _(...)_
+- **Flavia:** _(...)_
+- **Michelly:** _(...)_
+
+---
+
+## 🧰 Tecnologias
+Kotlin · Jetpack Compose · Material 3 · Navigation Compose · Room · KSP · **MVVM** · **Repository** · **Flow** · **StateFlow** · **UiState** · **ViewModelFactory** · Coroutines
+
+## 👥 Integrantes
+- Gabriele
+- Flavia
+- Michelly
