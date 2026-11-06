@@ -205,29 +205,26 @@ O único estado que ficou nas telas (com `rememberSaveable`) é o que é **só v
 
 ### 8. Alguma funcionalidade quebrou durante a reorganização?
 
-_(Escrever aqui o que aconteceu de verdade ao testar. Exemplos do que costuma acontecer:)_
-- **Imports quebrados ao mover os arquivos de pasta:** cada arquivo movido mudou de `package`, e as telas pararam de achar `Livro`, `Cores` e `Rotas`. Corrigimos os imports arquivo por arquivo.
-- _(outro problema encontrado e como foi resolvido)_
+Durante a reorganização, a principal dificuldade foi atualizar os pacotes e imports depois de mover os arquivos. Algumas telas deixaram de localizar classes como Livro, Cores e Rotas. Corrigimos os imports e conferimos a ligação entre as telas, os ViewModels e os Repositories. Depois dos ajustes, os testes listados abaixo confirmaram que as funcionalidades do Trabalho 3 continuaram funcionando.
 
 ### 9. Teste: o app continua fazendo tudo que fazia no Trabalho 3
 
-- [ ] Adicionar um livro e uma anotação
-- [ ] Editar um livro (✏️ no Detalhe) e o +10 pág
-- [ ] Marcar uma anotação como favorita
-- [ ] Remover um livro (as anotações dele somem juntas)
-- [ ] Fechar o app e reabrir: tudo continua lá
-- [ ] Girar o celular no meio do formulário: o texto continua lá
+- [ X ] Adicionar um livro e uma anotação
+- [ X ] Editar um livro (✏️ no Detalhe) e o +10 pág
+- [ X ] Marcar uma anotação como favorita
+- [ X ] Remover um livro (as anotações dele somem juntas)
+- [ X ] Fechar o app e reabrir: tudo continua lá
+- [ X ] Girar o celular no meio do formulário: o texto continua lá
 
-🎬 _Link do vídeo: (colar aqui)_
+🎬 _Link do vídeo: (https://drive.google.com/file/d/1TvHOaO-4A0ZPVmshbzaQpZDcBBsVLv5B/view?usp=sharing)
 
-<!-- Prints do Trabalho 4: salvem em docs/prints/trabalho4/ e apaguem as marcas de comentário
-<img src="docs/prints/trabalho4/pacotes.png" alt="Pacotes no Android Studio" width="250">
--->
+10. Dificuldades de cada integrante
 
-### 10. Dificuldades de cada integrante
-- **Gabriele:** _(...)_
-- **Flavia:** _(...)_
-- **Michelly:** _(...)_
+Gabriele: teve dificuldade para entender como o Flow atualiza as listas automaticamente quando os dados mudam no Room. Depois de acompanhar os dados desde o DAO até o uiState, conseguiu entender melhor o fluxo.
+
+Flavia: achou trabalhoso reorganizar os arquivos nos pacotes data.local, data.repository, viewmodel e ui, porque foi necessário revisar os pacotes e imports das classes movidas.
+
+Michelly: teve dificuldade para configurar a AppViewModelFactory e garantir que cada ViewModel recebesse o Repository correto. A revisão conjunta do AppNavigation ajudou a resolver a integração.
 
 ---
 
