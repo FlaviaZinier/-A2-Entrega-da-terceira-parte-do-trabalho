@@ -12,32 +12,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-// ---------------------------------------------------------------------
-// UiState: TUDO que as telas de livros precisam para se desenhar,
-// agrupado num lugar só (em vez de várias variáveis soltas).
-// ---------------------------------------------------------------------
 data class LivrosUiState(
-    val livros: List<Livro> = emptyList(),   // a lista do Início, Biblioteca, Leitura e Perfil
-    val totalAnotacoes: Int = 0,             // contador do Perfil
-    val carregando: Boolean = true           // true até o banco responder pela 1ª vez
+    val livros: List<Livro> = emptyList(),   
+    val totalAnotacoes: Int = 0,         
+    val carregando: Boolean = true     
 )
 
-// =====================================================================
-// LivrosViewModel: usado pelo Início, Biblioteca, Leitura e Perfil.
-// Recebe os Repositories pelo construtor (quem entrega é a Factory).
-// =====================================================================
 class LivrosViewModel(
     private val livroRepository: LivroRepository,
     private val anotacaoRepository: AnotacaoRepository
 ) : ViewModel() {
 
-    // _uiState: privado, SÓ o ViewModel altera
+    
     private val _uiState = MutableStateFlow(LivrosUiState())
-    // uiState: público e só de leitura, a tela apenas OBSERVA
     val uiState: StateFlow<LivrosUiState> = _uiState.asStateFlow()
 
     init {
-        // 1) Primeira vez que o app abre: coloca os livros e anotações de exemplo
         viewModelScope.launch {
             try {
                 if (livroRepository.inserirExemplosSeVazio()) {
@@ -48,8 +38,6 @@ class LivrosViewModel(
             }
         }
 
-        // 2) Fica "escutando" o banco. combine junta os dois Flows: sempre que
-        //    livros OU anotações mudarem, o uiState é atualizado sozinho.
         viewModelScope.launch {
             combine(
                 livroRepository.buscarTodos(),
@@ -62,9 +50,6 @@ class LivrosViewModel(
         }
     }
 
-    // ---------- AÇÕES (as telas chamam estas funções) ----------
-
-    // Usada pela Leitura (Próxima/Anterior página)
     fun atualizarLivro(livro: Livro) {
         viewModelScope.launch {
             try {
@@ -75,7 +60,6 @@ class LivrosViewModel(
         }
     }
 
-    // Lixeira da Biblioteca. As anotações do livro somem juntas (CASCADE).
     fun deletarLivro(livro: Livro) {
         viewModelScope.launch {
             try {
