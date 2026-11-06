@@ -84,8 +84,7 @@ app/src/main/java/com/example/wslbook/
 
 ## 📝 Processo e decisões do Trabalho 4
 
-> 🎬 **Vídeo mostrando o app funcionando igual ao Trabalho 3:** _(colar o link aqui)_
-> 📸 Prints em `docs/prints/`
+> 🎬 (https://drive.google.com/file/d/1TvHOaO-4A0ZPVmshbzaQpZDcBBsVLv5B/view?usp=sharing)
 
 ### 1. Como estava o projeto no Trabalho 3, e o que mudou na reorganização?
 
@@ -102,14 +101,6 @@ O que mudou:
 4. O ViewModel único virou **4 ViewModels**, cada um com o seu **`UiState`**, no padrão `_uiState` privado + `uiState` público.
 5. Criamos a **`AppViewModelFactory`**, que entrega o Repository certo para cada ViewModel.
 6. As telas passaram a só **ler o `uiState`** e **chamar funções do ViewModel**.
-
-<p>
-<img src="docs/prints/inicio.jpeg" alt="Início" width="180">
-<img src="docs/prints/biblioteca.jpeg" alt="Biblioteca" width="180">
-<img src="docs/prints/detalhe-livro.jpeg" alt="Detalhe do livro" width="180">
-</p>
-
-*As telas continuam iguais: a mudança foi por dentro.*
 
 ### 2. Como o trio decidiu dividir os pacotes?
 
@@ -171,8 +162,8 @@ Usamos Flow também em `observarPorId(id)` e `buscarPorLivro(livroId)`. Assim, n
 
 **O padrão `_uiState` / `uiState`** (igual em todos os ViewModels):
 ```kotlin
-private val _uiState = MutableStateFlow(LivrosUiState())          // privado: só o ViewModel muda
-val uiState: StateFlow<LivrosUiState> = _uiState.asStateFlow()     // público: a tela só lê
+private val _uiState = MutableStateFlow(LivrosUiState())          
+val uiState: StateFlow<LivrosUiState> = _uiState.asStateFlow()    
 ```
 E na tela:
 ```kotlin
@@ -185,7 +176,7 @@ O Android não sabe criar sozinho um ViewModel que **recebe parâmetros** (no no
 
 ```kotlin
 // AppNavigation.kt
-val factory = remember { AppViewModelFactory.criar(context) }   // banco -> DAOs -> Repositories
+val factory = remember { AppViewModelFactory.criar(context) }  
 val livrosViewModel: LivrosViewModel = viewModel(factory = factory)
 ```
 
