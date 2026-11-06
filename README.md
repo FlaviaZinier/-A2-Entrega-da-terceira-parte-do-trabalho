@@ -46,8 +46,6 @@ Aplicativo Android de leitura e organização de livros, feito em **Kotlin + Jet
 | **Repository** | `data.repository` | É a única porta de entrada dos dados | Não sabe nada de tela |
 | **Model** | `data.local` | As tabelas (`@Entity`), os DAOs e o banco (`@Database`) | Não sabe nada de tela nem de ViewModel |
 
-> 🍽️ **Analogia do restaurante:** a **View** é o salão (onde o cliente vê e pede), o **ViewModel** é o garçom (anota o pedido e traz o prato pronto), o **Repository** é o balcão da cozinha (o único lugar onde se pede comida) e o **Room/DAO** é a despensa. O cliente nunca entra na despensa.
-
 ---
 
 ## 🗂️ Organização em pacotes
